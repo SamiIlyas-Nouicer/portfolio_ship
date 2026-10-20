@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Cap'n Sami Nouicer — Sea Chart of the Archipelago</title>
+    <meta
+      name="description"
+      content="Interactive 3D pirate brigantine portfolio of Sami Nouicer — Data Scientist, ML Engineer & Data Engineer."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&family=Pirata+One&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <!-- Loading Screen: 17th-Century Cartographer's Scroll -->
+    <div id="loader" class="loader">
+      <div class="loader-parchment">
+        <div class="corner-ornament tl"></div>
+        <div class="corner-ornament tr"></div>
+        <div class="corner-ornament bl"></div>
+        <div class="corner-ornament br"></div>
+        <div class="loader-compass">
+          <svg viewBox="0 0 100 100" width="74" height="74" aria-hidden="true">
+            <circle cx="50" cy="50" r="44" fill="none" stroke="#5a381e" stroke-width="2" stroke-dasharray="3 2" />
+            <circle cx="50" cy="50" r="38" fill="none" stroke="#5a381e" stroke-width="1.2" />
+            <polygon points="50,4 57,43 50,36 43,43" fill="#8b1e1e" />
+            <polygon points="50,96 57,57 50,64 43,57" fill="#3b2313" />
+            <polygon points="4,50 43,43 36,50 43,57" fill="#3b2313" />
+            <polygon points="96,50 57,43 64,50 57,57" fill="#3b2313" />
+            <polygon points="18,18 46,42 42,46" fill="#7a542e" />
+            <polygon points="82,18 58,46 54,42" fill="#7a542e" />
+            <polygon points="18,82 42,54 46,58" fill="#7a542e" />
+            <polygon points="82,82 54,58 58,54" fill="#7a542e" />
+            <circle cx="50" cy="50" r="5" fill="#c89b3c" stroke="#3b2313" stroke-width="1.5" />
+          </svg>
+        </div>
+        <div class="loader-kicker">ANNO DOMINI MMXXVI · ROYAL HYDROGRAPHIC OFFICE</div>
+        <h1>Cap’n Sami Nouicer</h1>
+        <p class="loader-role">Master of Data Science, Machine Learning &amp; Distributed Engines</p>
+        <div class="loader-rule"></div>
+        <span class="loader-sub">Unfurling the Sails &amp; Charting the Thirteen Isles…</span>
+      </div>
+    </div>
+
+    <!-- 3D Viewport & CSS2D Labels -->
+    <div id="canvas-wrap">
+      <canvas id="webgl"></canvas>
+    </div>
+
+    <!-- HUD & Portfolio UI -->
+    <div id="ui-root"></div>
+
+    <!-- Works both when double-clicking index.html (file://) AND when using Vite (http://localhost:5173) -->
+    <script>
+      if (window.location.protocol === 'file:') {
+        var s = document.createElement('script');
+        s.src = './dist/app.js';
+        document.body.appendChild(s);
+      } else {
+        var m = document.createElement('script');
+        m.type = 'module';
+        m.src = '/src/main.js';
+        document.body.appendChild(m);
+      }
+    </script>
+  </body>
+</html>

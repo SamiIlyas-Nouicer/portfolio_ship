@@ -1,0 +1,1535 @@
+:root {
+  --timber-dark: #190f08;
+  --timber-mid: #2a190e;
+  --timber-grain: #3d2514;
+  --brass: #c89b3c;
+  --brass-bright: #e5be67;
+  --brass-dark: #7a581b;
+  --parchment-light: #f4e7c8;
+  --parchment-mid: #e6d1a7;
+  --parchment-edge: #c7a974;
+  --ink-dark: #261509;
+  --ink-sepia: #59381c;
+  --ink-faded: #785230;
+  --wax-red: #8b1e1e;
+  --wax-red-bright: #a92626;
+  --shadow-heavy: 0 16px 44px rgba(8, 4, 1, 0.72);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #0d161e;
+  font-family: 'IM Fell English', Georgia, 'Times New Roman', serif;
+  color: var(--ink-dark);
+}
+
+#canvas-wrap {
+  position: fixed;
+  inset: 0;
+}
+
+#webgl {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: grab;
+}
+
+#webgl:active {
+  cursor: grabbing;
+}
+
+.label-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ── Ornamental Brass Corner Brackets ────────────────────────────────────── */
+.corner-ornament {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-color: var(--brass-dark);
+  pointer-events: none;
+}
+.corner-ornament.tl {
+  top: 7px;
+  left: 7px;
+  border-top: 2px solid var(--ink-sepia);
+  border-left: 2px solid var(--ink-sepia);
+}
+.corner-ornament.tr {
+  top: 7px;
+  right: 7px;
+  border-top: 2px solid var(--ink-sepia);
+  border-right: 2px solid var(--ink-sepia);
+}
+.corner-ornament.bl {
+  bottom: 7px;
+  left: 7px;
+  border-bottom: 2px solid var(--ink-sepia);
+  border-left: 2px solid var(--ink-sepia);
+}
+.corner-ornament.br {
+  bottom: 7px;
+  right: 7px;
+  border-bottom: 2px solid var(--ink-sepia);
+  border-right: 2px solid var(--ink-sepia);
+}
+
+/* ── Loading Screen: 17th-Century Sea Chart ──────────────────────────────── */
+.loader {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: radial-gradient(circle at 50% 45%, #23160c 0%, #0d0704 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.65s ease, visibility 0.65s ease;
+}
+
+.loader.fade-out {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.loader-parchment {
+  position: relative;
+  text-align: center;
+  padding: 40px 54px;
+  max-width: 520px;
+  background:
+    radial-gradient(circle at 50% 40%, var(--parchment-light) 0%, var(--parchment-mid) 70%, var(--parchment-edge) 100%);
+  border: 3px double var(--ink-sepia);
+  outline: 4px solid var(--timber-mid);
+  box-shadow:
+    inset 0 0 40px rgba(95, 56, 18, 0.45),
+    0 24px 60px rgba(0, 0, 0, 0.85);
+  color: var(--ink-dark);
+}
+
+.loader-compass {
+  margin-bottom: 10px;
+  animation: slowSpin 16s linear infinite;
+}
+
+@keyframes slowSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.loader-kicker {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--wax-red);
+  margin-bottom: 6px;
+}
+
+.loader-parchment h1 {
+  font-family: 'Pirata One', Georgia, serif;
+  font-weight: 400;
+  font-size: 38px;
+  letter-spacing: 0.03em;
+  color: var(--ink-dark);
+}
+
+.loader-role {
+  font-style: italic;
+  color: var(--ink-sepia);
+  font-size: 15px;
+  margin-top: 4px;
+}
+
+.loader-rule {
+  height: 2px;
+  width: 75%;
+  margin: 16px auto 12px;
+  background: linear-gradient(90deg, transparent, var(--ink-sepia), var(--wax-red), var(--ink-sepia), transparent);
+}
+
+.loader-sub {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 13px;
+  color: var(--ink-sepia);
+}
+
+/* ── Floating 3D Island Parchment Banners ────────────────────────────────── */
+.island-label {
+  position: relative;
+  background: linear-gradient(180deg, #f5e8cb 0%, #dfc696 100%);
+  border: 1.5px solid #4a2c11;
+  outline: 1px solid rgba(200, 155, 60, 0.45);
+  box-shadow:
+    inset 0 0 14px rgba(110, 68, 25, 0.35),
+    0 8px 18px rgba(10, 5, 0, 0.6);
+  padding: 6px 14px 6px 16px;
+  color: var(--ink-dark);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.25s ease;
+  white-space: nowrap;
+}
+
+/* Wax seal pin on the left edge of each floating banner */
+.il-seal {
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #c43030, var(--cat, #8b1e1e) 75%);
+  border: 1.5px solid #3a1208;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.island-label:hover,
+.island-label.is-near {
+  transform: translateY(-2px) scale(1.06);
+  border-color: var(--wax-red);
+  box-shadow:
+    inset 0 0 16px rgba(139, 30, 30, 0.25),
+    0 10px 24px rgba(0, 0, 0, 0.75);
+}
+
+.il-kicker {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cat, #8b1e1e);
+  line-height: 1;
+}
+
+.il-title {
+  font-family: 'Pirata One', Georgia, serif;
+  font-size: 16px;
+  letter-spacing: 0.02em;
+  color: var(--ink-dark);
+  line-height: 1.15;
+  margin-top: 1px;
+}
+
+.il-sub {
+  font-size: 10.5px;
+  font-style: italic;
+  color: var(--ink-sepia);
+}
+
+/* ── Top Carved Timber Ship's Ledger Bar ─────────────────────────────────── */
+#ui-root {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.topbar {
+  pointer-events: auto;
+  position: absolute;
+  top: 12px;
+  left: 14px;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 9px 18px;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(229, 190, 103, 0.14) 0%, transparent 65%),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.016) 0px,
+      rgba(255, 255, 255, 0.016) 2px,
+      transparent 2px,
+      transparent 11px
+    ),
+    linear-gradient(180deg, #321d0f 0%, #1d1008 52%, #120904 100%);
+  border-top: 2px solid var(--brass);
+  border-bottom: 2px solid var(--brass-dark);
+  border-left: 3px solid var(--brass);
+  border-right: 3px solid var(--brass);
+  outline: 2px solid #0b0502;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 232, 175, 0.25),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.8),
+    inset 0 0 28px rgba(0, 0, 0, 0.8),
+    0 18px 42px rgba(0, 0, 0, 0.78);
+  color: var(--parchment-light);
+}
+
+/* Decorative top & bottom brass filigree trim line */
+.topbar::before,
+.topbar::after {
+  content: '';
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(200, 155, 60, 0.55) 15%,
+    rgba(255, 230, 165, 0.85) 50%,
+    rgba(200, 155, 60, 0.55) 85%,
+    transparent 100%
+  );
+}
+.topbar::before {
+  top: 3px;
+}
+.topbar::after {
+  bottom: 3px;
+  opacity: 0.55;
+}
+
+/* Corner Brass Rivets on the Navbar */
+.brass-rivet {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff0b8, #b88628 65%, #3d2506 100%);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+  pointer-events: none;
+}
+.brass-rivet.tl { top: 6px; left: 6px; }
+.brass-rivet.tr { top: 6px; right: 6px; }
+.brass-rivet.bl { bottom: 6px; left: 6px; }
+.brass-rivet.br { bottom: 6px; right: 6px; }
+
+/* ── Left Brand: Captain's Quarterdeck Plaque ────────────────────────────── */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  padding-right: 12px;
+  border-right: 1px solid rgba(200, 155, 60, 0.28);
+}
+
+.brand-emblem {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #3d2110, #160b04 80%);
+  border: 2px solid var(--brass);
+  display: grid;
+  place-items: center;
+  box-shadow:
+    inset 0 0 8px rgba(0, 0, 0, 0.85),
+    0 4px 12px rgba(0, 0, 0, 0.75);
+  transition: transform 0.25s ease, border-color 0.25s ease;
+}
+
+.brand-emblem-ring {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1px dashed rgba(229, 190, 103, 0.55);
+  pointer-events: none;
+  transition: transform 0.6s ease;
+}
+
+.brand:hover .brand-emblem {
+  transform: scale(1.06);
+  border-color: var(--brass-bright);
+}
+
+.brand:hover .brand-emblem-ring {
+  transform: rotate(45deg);
+}
+
+.brand-kicker {
+  font-family: 'Cinzel', serif;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  color: var(--brass);
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.brand-name {
+  font-family: 'Pirata One', Georgia, serif;
+  font-size: 22px;
+  letter-spacing: 0.03em;
+  background: linear-gradient(180deg, #fff5d1 0%, #e5be67 55%, #b58325 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.75));
+  line-height: 1.02;
+}
+
+.brand-sub {
+  font-size: 11px;
+  font-style: italic;
+  color: #d4be96;
+  margin-top: 2px;
+}
+
+/* Struck Gold Doubloon Charted Badge */
+.visited-pill {
+  margin-left: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 11px;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(229, 190, 103, 0.22), rgba(20, 10, 4, 0.85));
+  border: 1.5px solid var(--brass);
+  box-shadow:
+    inset 0 0 8px rgba(200, 155, 60, 0.25),
+    0 3px 8px rgba(0, 0, 0, 0.6);
+  position: relative;
+}
+
+.visited-crown {
+  font-size: 9px;
+  color: var(--brass-bright);
+  line-height: 1;
+}
+
+#visited-text {
+  font-family: 'Pirata One', Georgia, serif;
+  font-size: 15px;
+  color: #fff2c6;
+  letter-spacing: 0.05em;
+  line-height: 1.1;
+}
+
+.visited-pill small {
+  font-family: 'Cinzel', serif;
+  font-size: 7.5px;
+  letter-spacing: 0.16em;
+  color: var(--brass);
+}
+
+/* ── Center: Recessed Ledger Trough & Ornate Plaque Tabs ─────────────────── */
+.top-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  background: rgba(9, 4, 1, 0.65);
+  border: 1px solid rgba(200, 155, 60, 0.32);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.85);
+}
+
+.nav-btn {
+  position: relative;
+  font-family: 'IM Fell English SC', serif;
+  background:
+    linear-gradient(180deg, #3c2312 0%, #241409 55%, #190d05 100%);
+  color: var(--parchment-light);
+  border: 1px solid rgba(200, 155, 60, 0.45);
+  padding: 5px 11px 5px 7px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 225, 160, 0.18),
+    0 3px 7px rgba(0, 0, 0, 0.55);
+  transition: all 0.18s ease;
+}
+
+.nav-icon-frame {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #2f1a0d, #120803);
+  border: 1px solid var(--brass);
+  display: grid;
+  place-items: center;
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.8);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.nav-lbl {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  line-height: 1.05;
+}
+
+.nav-lbl small {
+  font-family: 'Cinzel', serif;
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  color: var(--brass);
+}
+
+.nav-lbl strong {
+  font-family: 'IM Fell English SC', serif;
+  font-weight: 400;
+  font-size: 14px;
+  letter-spacing: 0.03em;
+  color: var(--parchment-light);
+}
+
+/* Crimson Wax Counter Seal on each Nav Tab */
+.nav-seal {
+  min-width: 21px;
+  height: 21px;
+  padding: 0 5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #c62f2f, #691010);
+  border: 1px solid var(--brass);
+  color: #fff2d6;
+  font-family: 'Cinzel', serif;
+  font-size: 9.5px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.nav-btn:hover,
+.nav-btn.active {
+  background:
+    radial-gradient(circle at 50% 100%, rgba(229, 190, 103, 0.28), transparent 70%),
+    linear-gradient(180deg, #523018 0%, #331c0d 55%, #221107 100%);
+  border-color: var(--brass-bright);
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 240, 190, 0.35),
+    0 5px 14px rgba(0, 0, 0, 0.7);
+}
+
+.nav-btn:hover .nav-icon-frame,
+.nav-btn.active .nav-icon-frame {
+  transform: scale(1.08) rotate(-5deg);
+  border-color: #fff0b8;
+}
+
+/* Bottom gold diamond indicator on active tab */
+.nav-btn.active::after {
+  content: '◆';
+  position: absolute;
+  bottom: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: var(--brass-bright);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+}
+
+/* ── Right: Navigator's Instrument Dials & Royal Commission CTA ─────────── */
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon-btn {
+  background: linear-gradient(180deg, #321d0f 0%, #1b0f07 100%);
+  color: var(--parchment-light);
+  border: 1px solid var(--brass-dark);
+  padding: 5px 10px 5px 7px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  box-shadow: inset 0 1px 0 rgba(255, 220, 150, 0.14);
+  transition: all 0.16s ease;
+}
+
+.dial-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #2a170b, #100702);
+  border: 1px solid rgba(200, 155, 60, 0.6);
+  display: grid;
+  place-items: center;
+  transition: transform 0.25s ease;
+}
+
+.dial-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.05;
+}
+
+.dial-text small {
+  font-family: 'Cinzel', serif;
+  font-size: 7.5px;
+  letter-spacing: 0.16em;
+  color: var(--brass);
+}
+
+.dial-text strong {
+  font-family: 'IM Fell English SC', serif;
+  font-weight: 400;
+  font-size: 12.5px;
+  color: var(--parchment-light);
+}
+
+.icon-btn:hover,
+.icon-btn.active {
+  background: linear-gradient(180deg, #4a2b16 0%, #2a170b 100%);
+  border-color: var(--brass-bright);
+}
+
+.icon-btn:hover .dial-icon {
+  transform: rotate(18deg) scale(1.06);
+  border-color: var(--brass-bright);
+}
+
+/* Royal Crimson & Gold Leaf Dossier Button */
+.cta-btn {
+  position: relative;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 215, 130, 0.25), transparent 65%),
+    linear-gradient(180deg, #ab2424 0%, #7d1515 55%, #560d0d 100%);
+  color: var(--parchment-light);
+  padding: 5px 13px 5px 8px;
+  border: 1.5px solid var(--brass-bright);
+  outline: 1px solid #2b0707;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 230, 180, 0.4),
+    0 5px 14px rgba(0, 0, 0, 0.65);
+  transition: transform 0.16s ease, filter 0.16s ease, box-shadow 0.16s ease;
+}
+
+.cta-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #3d1212, #1c0606);
+  border: 1px solid var(--brass-bright);
+  display: grid;
+  place-items: center;
+}
+
+.cta-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.05;
+}
+
+.cta-text small {
+  font-family: 'Cinzel', serif;
+  font-size: 7.5px;
+  letter-spacing: 0.15em;
+  color: #ffdca8;
+}
+
+.cta-text strong {
+  font-family: 'Pirata One', Georgia, serif;
+  font-weight: 400;
+  font-size: 16px;
+  letter-spacing: 0.03em;
+  color: #fff6df;
+}
+
+.cta-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 240, 200, 0.55),
+    0 7px 18px rgba(139, 30, 30, 0.55);
+}
+
+/* ── Parchment Gazetteer (Quick-Travel Atlas) ────────────────────────────── */
+.atlas-panel {
+  pointer-events: auto;
+  position: absolute;
+  top: 74px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(940px, calc(100vw - 28px));
+  max-height: calc(100vh - 150px);
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(circle at 50% 30%, var(--parchment-light) 0%, var(--parchment-mid) 72%, var(--parchment-edge) 100%);
+  border: 3px double var(--ink-sepia);
+  outline: 4px solid var(--timber-mid);
+  box-shadow:
+    inset 0 0 45px rgba(105, 62, 18, 0.4),
+    var(--shadow-heavy);
+  padding: 20px 24px;
+  z-index: 25;
+  color: var(--ink-dark);
+}
+
+.parchment-kicker {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  color: var(--wax-red);
+}
+
+.atlas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  border-bottom: 1.5px solid rgba(89, 56, 28, 0.35);
+  padding-bottom: 10px;
+}
+
+.atlas-header h3 {
+  font-family: 'Pirata One', Georgia, serif;
+  font-weight: 400;
+  font-size: 26px;
+  letter-spacing: 0.02em;
+  color: var(--ink-dark);
+}
+
+.atlas-header p {
+  font-size: 13.5px;
+  color: var(--ink-sepia);
+  margin-top: 2px;
+}
+
+.atlas-filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.filter-chip {
+  font-family: 'IM Fell English SC', serif;
+  background: rgba(74, 44, 17, 0.08);
+  color: var(--ink-sepia);
+  border: 1px solid rgba(89, 56, 28, 0.45);
+  padding: 5px 13px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.filter-chip.active,
+.filter-chip:hover {
+  background: var(--timber-mid);
+  color: var(--brass-bright);
+  border-color: var(--brass-dark);
+}
+
+.atlas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.atlas-card {
+  background: rgba(255, 248, 231, 0.55);
+  border: 1.5px solid rgba(89, 56, 28, 0.45);
+  border-left: 4px solid var(--cat, var(--wax-red));
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  box-shadow: inset 0 0 16px rgba(120, 78, 30, 0.14);
+}
+
+.atlas-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11.5px;
+}
+
+.atlas-cat {
+  font-family: 'IM Fell English SC', serif;
+  color: var(--cat);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  letter-spacing: 0.05em;
+}
+
+.atlas-date {
+  font-style: italic;
+  color: var(--ink-faded);
+}
+
+.atlas-card h4 {
+  font-family: 'Pirata One', Georgia, serif;
+  font-weight: 400;
+  font-size: 19px;
+  color: var(--ink-dark);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.visited-check {
+  color: var(--wax-red);
+  font-size: 14px;
+}
+
+.atlas-sub {
+  font-size: 13px;
+  font-style: italic;
+  color: var(--ink-sepia);
+  flex: 1;
+}
+
+.atlas-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.atlas-sail-btn,
+.atlas-dock-btn {
+  flex: 1;
+  font-family: 'IM Fell English SC', serif;
+  padding: 6px 9px;
+  font-size: 12.5px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.atlas-sail-btn {
+  background: transparent;
+  color: var(--ink-dark);
+  border: 1px solid var(--ink-sepia);
+}
+
+.atlas-sail-btn:hover {
+  background: rgba(74, 44, 17, 0.14);
+}
+
+.atlas-dock-btn {
+  background: var(--timber-mid);
+  color: var(--brass-bright);
+  border: 1px solid var(--brass-dark);
+}
+
+.atlas-dock-btn:hover {
+  background: var(--wax-red);
+  color: var(--parchment-light);
+}
+
+/* ── Proximity Drop-Anchor Banner & Autopilot Scroll ─────────────────────── */
+.dock-prompt {
+  pointer-events: auto;
+  position: absolute;
+  bottom: 94px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+}
+
+.dock-prompt-inner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 22px 10px 14px;
+  background: linear-gradient(180deg, var(--parchment-light) 0%, var(--parchment-mid) 100%);
+  border: 2px solid var(--ink-dark);
+  outline: 2px solid var(--brass);
+  box-shadow:
+    inset 0 0 18px rgba(110, 68, 22, 0.35),
+    0 12px 30px rgba(0, 0, 0, 0.7);
+  cursor: pointer;
+  animation: gentleFloat 2.2s infinite ease-in-out;
+}
+
+@keyframes gentleFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.dock-wax-seal {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #c92c2c, #6e1111);
+  border: 2px solid #3d0a0a;
+  color: var(--parchment-light);
+  font-family: 'Cinzel', serif;
+  font-weight: 800;
+  font-size: 15px;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.45);
+}
+
+.dock-prompt-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.dock-prompt-label {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  color: var(--wax-red);
+}
+
+.dock-prompt-text strong {
+  font-family: 'Pirata One', Georgia, serif;
+  font-weight: 400;
+  font-size: 20px;
+  color: var(--ink-dark);
+  line-height: 1.05;
+}
+
+.dock-prompt-cta {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 13px;
+  color: var(--ink-sepia);
+  border-left: 1px solid rgba(89, 56, 28, 0.35);
+  padding-left: 12px;
+}
+
+.autopilot-banner {
+  pointer-events: auto;
+  position: absolute;
+  top: 74px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, #2b190d 0%, #190e07 100%);
+  color: var(--parchment-light);
+  border: 1.5px solid var(--brass);
+  padding: 7px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13.5px;
+  box-shadow: var(--shadow-heavy);
+}
+
+.autopilot-banner strong {
+  color: var(--brass-bright);
+  font-family: 'IM Fell English SC', serif;
+}
+
+.autopilot-banner button {
+  font-family: 'IM Fell English SC', serif;
+  background: var(--wax-red);
+  color: var(--parchment-light);
+  border: 1px solid var(--brass);
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* ── Bottom-Left Ship's Binnacle & Rotating Helm Wheel ───────────────────── */
+.helm-hud {
+  pointer-events: auto;
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 18px 10px 12px;
+  background: linear-gradient(180deg, #2b190d 0%, #170d06 100%);
+  border: 2px solid var(--brass-dark);
+  outline: 2px solid #0c0603;
+  box-shadow:
+    inset 0 0 20px rgba(0, 0, 0, 0.8),
+    var(--shadow-heavy);
+  color: var(--parchment-light);
+}
+
+.helm-wheel-box {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  transition: transform 0.08s linear;
+}
+
+.speed-box {
+  text-align: center;
+  padding-right: 14px;
+  border-right: 1px solid rgba(200, 155, 60, 0.3);
+  min-width: 72px;
+}
+
+.speed-val {
+  font-family: 'Pirata One', Georgia, serif;
+  font-size: 26px;
+  color: var(--brass-bright);
+  line-height: 1;
+}
+
+.speed-unit {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  color: #bfa780;
+}
+
+.compass-bearing {
+  font-family: 'Cinzel', serif;
+  font-size: 10.5px;
+  color: var(--parchment-mid);
+  margin-top: 3px;
+}
+
+.helm-nearest {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 14px;
+  color: var(--brass-bright);
+  margin-bottom: 4px;
+}
+
+.helm-keys {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: #cbb389;
+}
+
+kbd {
+  font-family: 'Cinzel', serif;
+  background: #3a2312;
+  border: 1px solid var(--brass-dark);
+  padding: 1px 5px;
+  font-size: 10px;
+  color: var(--parchment-light);
+  margin: 0 1px;
+}
+
+/* ── Bottom-Right Parchment Sea Chart & Brass Bezel ──────────────────────── */
+.minimap-wrap {
+  pointer-events: auto;
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.minimap-bezel {
+  padding: 5px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 45deg,
+    #8c6623,
+    #e5be67,
+    #6d4c14,
+    #c89b3c,
+    #593d0e,
+    #e5be67,
+    #8c6623
+  );
+  border: 2px solid #1e1107;
+  box-shadow:
+    inset 0 0 8px rgba(0, 0, 0, 0.7),
+    0 14px 36px rgba(0, 0, 0, 0.75);
+}
+
+#minimap {
+  display: block;
+  border-radius: 50%;
+  border: 2px solid #2b180a;
+}
+
+.minimap-caption {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--parchment-mid);
+  background: #1c1008;
+  border: 1px solid var(--brass-dark);
+  padding: 2px 10px;
+}
+
+.minimap-tooltip {
+  position: absolute;
+  top: -32px;
+  background: var(--parchment-light);
+  color: var(--ink-dark);
+  border: 1.5px solid var(--ink-dark);
+  padding: 4px 11px;
+  font-family: 'IM Fell English SC', serif;
+  font-size: 12px;
+  white-space: nowrap;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.55);
+}
+
+/* ── Captain's Logbook (Right-Side Parchment Tome) ───────────────────────── */
+.island-drawer {
+  pointer-events: auto;
+  position: absolute;
+  top: 72px;
+  right: 14px;
+  bottom: 14px;
+  width: min(475px, calc(100vw - 28px));
+  background:
+    radial-gradient(circle at 45% 30%, var(--parchment-light) 0%, var(--parchment-mid) 72%, var(--parchment-edge) 100%);
+  border: 3px double var(--ink-sepia);
+  outline: 4px solid var(--timber-mid);
+  box-shadow:
+    inset 0 0 48px rgba(95, 56, 16, 0.42),
+    var(--shadow-heavy);
+  display: flex;
+  flex-direction: column;
+  z-index: 20;
+  color: var(--ink-dark);
+}
+
+.drawer-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px 10px;
+  border-bottom: 1.5px solid rgba(89, 56, 28, 0.35);
+}
+
+.drawer-badge {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 12.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border: 1.5px solid;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 248, 231, 0.5);
+}
+
+.wax-close-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ba2929, #6b1111);
+  color: var(--parchment-light);
+  border: 1.5px solid #380909;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.wax-close-btn:hover {
+  transform: scale(1.07);
+}
+
+.drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 22px 20px;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.log-entry-stamp {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--ink-faded);
+  margin-bottom: 4px;
+}
+
+.drawer-header-block h2 {
+  font-family: 'Pirata One', Georgia, serif;
+  font-weight: 400;
+  font-size: 32px;
+  line-height: 1.08;
+  color: var(--ink-dark);
+}
+
+.drawer-subtitle {
+  font-style: italic;
+  color: var(--wax-red);
+  font-size: 16px;
+  margin-top: 3px;
+}
+
+.drawer-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: var(--ink-sepia);
+  margin-top: 6px;
+}
+
+.ink-divider {
+  height: 2px;
+  margin: 12px 0;
+  background: linear-gradient(90deg, var(--ink-sepia), var(--wax-red), transparent);
+}
+
+.metrics-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 10px;
+  margin: 14px 0;
+}
+
+.metric-card {
+  background: rgba(65, 38, 14, 0.07);
+  border: 1.5px solid var(--ink-sepia);
+  border-top: 3px solid var(--cat, var(--wax-red));
+  padding: 9px 10px;
+  text-align: center;
+}
+
+.metric-val {
+  font-family: 'Pirata One', Georgia, serif;
+  font-size: 24px;
+  color: var(--ink-dark);
+  line-height: 1;
+}
+
+.metric-lbl {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 11px;
+  color: var(--ink-sepia);
+  margin-top: 3px;
+}
+
+.drawer-summary {
+  font-size: 15px;
+  line-height: 1.62;
+  color: var(--ink-dark);
+  margin: 12px 0;
+}
+
+.drawer-bullets {
+  padding-left: 20px;
+  margin: 12px 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--ink-dark);
+}
+
+.drawer-bullets li::marker {
+  color: var(--wax-red);
+}
+
+.drawer-tags-wrap {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(89, 56, 28, 0.4);
+}
+
+.tags-heading {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--ink-sepia);
+  margin-bottom: 6px;
+}
+
+.drawer-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tech-tag {
+  font-family: 'IM Fell English SC', serif;
+  background: rgba(65, 38, 14, 0.1);
+  border: 1px solid rgba(89, 56, 28, 0.55);
+  color: var(--ink-dark);
+  font-size: 12px;
+  padding: 2px 9px;
+}
+
+.skills-section {
+  margin-top: 16px;
+  border-top: 1.5px solid rgba(89, 56, 28, 0.35);
+  padding-top: 12px;
+}
+
+.skills-section h4 {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  color: var(--wax-red);
+  margin-bottom: 10px;
+}
+
+.skill-group {
+  margin-bottom: 10px;
+}
+
+.skill-group-name {
+  font-family: 'Cinzel', serif;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink-sepia);
+  margin-bottom: 4px;
+}
+
+.contact-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.contact-pill {
+  font-family: 'IM Fell English SC', serif;
+  text-decoration: none;
+  background: var(--timber-mid);
+  border: 1px solid var(--brass);
+  color: var(--brass-bright);
+  padding: 6px 12px;
+  font-size: 12.5px;
+}
+
+.contact-pill:hover {
+  background: var(--wax-red);
+  color: var(--parchment-light);
+}
+
+.drawer-footer {
+  display: flex;
+  gap: 8px;
+  padding: 12px 18px;
+  border-top: 1.5px solid rgba(89, 56, 28, 0.35);
+  background: rgba(89, 56, 28, 0.12);
+}
+
+.drawer-nav-btn {
+  font-family: 'IM Fell English SC', serif;
+  background: transparent;
+  color: var(--ink-dark);
+  border: 1.5px solid var(--ink-sepia);
+  padding: 8px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.drawer-nav-btn:hover {
+  background: rgba(89, 56, 28, 0.15);
+}
+
+.drawer-undock-btn {
+  flex: 1;
+  font-family: 'IM Fell English SC', serif;
+  background: linear-gradient(180deg, #9e2424 0%, #6e1414 100%);
+  color: var(--parchment-light);
+  border: 1.5px solid var(--brass);
+  padding: 8px 12px;
+  font-size: 13.5px;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+}
+
+/* ── Admiralty Dossier (Full CV Modal) ───────────────────────────────────── */
+.cv-modal-backdrop {
+  pointer-events: auto;
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 4, 1, 0.82);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 40;
+}
+
+.cv-modal-card {
+  position: relative;
+  width: min(860px, 100%);
+  max-height: 88vh;
+  background:
+    radial-gradient(circle at 50% 30%, var(--parchment-light) 0%, var(--parchment-mid) 72%, var(--parchment-edge) 100%);
+  border: 3px double var(--ink-sepia);
+  outline: 4px solid var(--timber-mid);
+  box-shadow:
+    inset 0 0 50px rgba(95, 56, 16, 0.42),
+    var(--shadow-heavy);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--ink-dark);
+}
+
+.cv-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 18px 26px 14px;
+  border-bottom: 1.5px solid rgba(89, 56, 28, 0.35);
+}
+
+.cv-modal-header h2 {
+  font-family: 'Pirata One', Georgia, serif;
+  font-weight: 400;
+  font-size: 30px;
+}
+
+.cv-modal-header p {
+  font-style: italic;
+  font-size: 14px;
+  color: var(--ink-sepia);
+}
+
+.cv-modal-content {
+  padding: 20px 26px;
+  overflow-y: auto;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.cv-banner {
+  background: rgba(74, 44, 17, 0.07);
+  border: 1.5px solid rgba(89, 56, 28, 0.45);
+  padding: 14px 16px;
+  font-size: 14.5px;
+  line-height: 1.58;
+  margin-bottom: 18px;
+}
+
+.cv-avail {
+  margin-top: 8px;
+  color: var(--wax-red);
+}
+
+.cv-modal-content h3 {
+  font-family: 'Pirata One', Georgia, serif;
+  font-weight: 400;
+  font-size: 22px;
+  margin: 18px 0 10px;
+  color: var(--wax-red);
+  border-bottom: 1px solid rgba(89, 56, 28, 0.3);
+  padding-bottom: 3px;
+}
+
+.cv-item {
+  background: rgba(255, 248, 231, 0.5);
+  border: 1px solid rgba(89, 56, 28, 0.4);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+
+.cv-item-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+
+.cv-item-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cv-date {
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-sepia);
+}
+
+.cv-jump-btn {
+  font-family: 'IM Fell English SC', serif;
+  background: var(--timber-mid);
+  border: 1px solid var(--brass);
+  color: var(--brass-bright);
+  padding: 3px 10px;
+  font-size: 11.5px;
+  cursor: pointer;
+}
+
+.cv-item ul {
+  padding-left: 18px;
+  font-size: 14px;
+  color: var(--ink-dark);
+  line-height: 1.52;
+  margin-bottom: 8px;
+}
+
+/* ── Touch Controls (Mobile / Tablet) ────────────────────────────────────── */
+.touch-controls {
+  display: none;
+}
+
+.hidden {
+  display: none !important;
+}
+
+@media (max-width: 960px) {
+  .top-nav {
+    display: none;
+  }
+  .helm-keys {
+    display: none;
+  }
+  .touch-controls {
+    pointer-events: auto;
+    display: flex;
+    position: absolute;
+    bottom: 88px;
+    left: 14px;
+    align-items: center;
+    gap: 12px;
+  }
+  .joystick-zone {
+    width: 96px;
+    height: 96px;
+    touch-action: none;
+  }
+  .joystick-base {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: rgba(25, 15, 8, 0.85);
+    border: 2px solid var(--brass);
+    display: grid;
+    place-items: center;
+  }
+  .joystick-stick {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--brass);
+    border: 2px solid var(--timber-dark);
+  }
+  .touch-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .touch-btn {
+    font-family: 'IM Fell English SC', serif;
+    background: var(--timber-mid);
+    color: var(--brass-bright);
+    border: 1.5px solid var(--brass);
+    padding: 9px 13px;
+    font-size: 12px;
+  }
+}
